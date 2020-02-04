@@ -5,6 +5,8 @@ namespace Ndberg\IntrospectionClient;
 
 
 use Firebase\JWT\JWT;
+use Illuminate\Foundation\Auth\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 
 /**
@@ -14,11 +16,6 @@ use Illuminate\Support\Facades\File;
  */
 class AccessTokenDecoder
 {
-    /**
-     * @var string
-     */
-    public string $accessToken;
-
     /**
      * Audience
      *
@@ -69,13 +66,18 @@ class AccessTokenDecoder
     public array $scopes;
 
     /**
+     * @var \Illuminate\Http\Request
+     */
+    private Request $request;
+
+    /**
      * AccessTokenDecoder constructor.
      *
-     * @param  string  $accessToken
+     * @param  \Illuminate\Http\Request  $request
      */
-    public function __construct(string $accessToken)
+    public function __construct(Request $request)
     {
-        $this->accessToken = $accessToken;
+        $this->request = $request;
     }
 
     /**
@@ -85,7 +87,7 @@ class AccessTokenDecoder
     public function decodeAccessToken() : self
     {
         $key = File::get(storage_path('oauth-public.key'));
-        $decoded = JWT::decode($this->accessToken, $key, ['RS256']);
+        $decoded = JWT::decode($this->request->bearerToken(), $key, ['RS256']);
 
         $this->aud = $decoded->aud;
         $this->jti = $decoded->jti;

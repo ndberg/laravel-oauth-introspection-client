@@ -1,13 +1,13 @@
 <?php
 
+
 namespace Ndberg\IntrospectionClient;
 
-use GuzzleHttp\Exception\RequestException;
-use Illuminate\Auth\AuthenticationException;
+
+use Illuminate\Cache\Repository;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Foundation\Auth\User;
-use Illuminate\Http\Request;
-use Ndberg\IntrospectionClient\Exceptions\MissingScopeException;
+use Illuminate\Support\Collection;
 
 /**
  * Class Introspection
@@ -16,166 +16,77 @@ use Ndberg\IntrospectionClient\Exceptions\MissingScopeException;
  */
 class Introspection
 {
-    protected IntrospectionClient $client;
-    protected $result;
-    protected string $userDataKey = 'user';
+    /**
+     * @var string
+     */
     protected string $userModelClass = User::class;
+
+    /**
+     * User Model
+     *
+     * @var \Illuminate\Foundation\Auth\User
+     */
+    protected $user;
+
+    /**
+     * @var \Illuminate\Cache\Repository
+     */
+    protected Repository $cache;
 
     /**
      * Introspection constructor.
      *
-     * @param  \Ndberg\IntrospectionClient\IntrospectionClient  $client
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Cache\Repository  $cache
      */
-    public function __construct(IntrospectionClient $client, Request $request)
+    public function __construct(Repository $cache)
     {
-        $this->client = $client;
-        $this->request = $request;
+        $this->cache = $cache;
     }
 
     /**
-     * @param  array  $requiredScopes
+     * Get to a user related data, which was delivered
+     * by the introspection endpoint
      *
-     * @return \Ndberg\IntrospectionClient\Introspection
-     * @throws \Illuminate\Auth\AuthenticationException
-     * @throws \Ndberg\IntrospectionClient\Exceptions\MissingScopeException
+     * @param  string  $dataKey
+     *
+     * @return \Illuminate\Support\Collection|null
      */
-    public function mustHaveScopes(array $requiredScopes = [])
+    public function getUserRelatedData(string $dataKey) : ?Collection
     {
-        $result = $this->getIntrospectionResult();
-        $givenScopes = explode(' ', $result['scope']);
-        $missingScopes = array_diff($requiredScopes, $givenScopes);
-
-        if (count($missingScopes) > 0) {
-            throw new MissingScopeException($missingScopes);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     * @throws \Illuminate\Auth\AuthenticationException
-     */
-    protected function getIntrospectionResult()
-    {
-        if ($this->result !== null) {
-            return $this->result;
-        }
-
-        $token = $this->request->bearerToken();
-
-        if (empty($token)) {
-            throw new AuthenticationException();
-        }
-
         try {
-            $this->result = $this->client->introspect($token);
-        } catch (RequestException $e) {
-            if ($e->hasResponse()) {
-                $result = json_decode((string) $e->getResponse()->getBody(), true);
+            return collect($this->getUser()->{$dataKey});
 
-                if (isset($result['error'])) {
-                    throw new AuthenticationException($result['error']['title'] ?? '');
-                }
-            }
-
-            throw new AuthenticationException($e->getMessage());
+        } catch (\Exception $exception) {
+            return null;
         }
-
-        return $this->result;
-    }
-
-    /**
-     * @param  string  $key
-     *
-     * @return $this
-     */
-    public function setUserDataKey(string $key) : self
-    {
-        $this->userDataKey = $key;
-
-        return $this;
     }
 
     /**
      * @return \Illuminate\Contracts\Auth\Authenticatable|null
-     * @throws \Illuminate\Auth\AuthenticationException
      */
-    public function getUser()
+    public function getUser() : ?User
     {
-        $result = $this->getIntrospectionResult();
+        return $this->user;
+    }
 
-        if (isset($result[$this->userDataKey]) && ! empty($result[$this->userDataKey])) {
-            $user = $this->getUserModel();
-            $user->forceFill($result[$this->userDataKey]);
+    /**
+     * @param  array  $userData
+     *
+     * @return \Illuminate\Foundation\Auth\User
+     */
+    public function setUser($userData): User
+    {
+        $this->user = $this->getUserModel();
+        $this->user->forceFill($userData);
 
-            return $user;
-        }
-
-        return null;
+        return $this->user;
     }
 
     /**
      * @return \Illuminate\Contracts\Auth\Authenticatable
      */
-    public function getUserModel() : Authenticatable
+    protected function getUserModel() : Authenticatable
     {
-        $class = $this->getUserModelClass();
-
-        return new $class();
-    }
-
-    /**
-     * @return string
-     */
-    public function getUserModelClass() : string
-    {
-        return $this->userModelClass;
-    }
-
-    /**
-     * @param  string  $class
-     *
-     * @return $this
-     */
-    public function setUserModelClass(string $class) : self
-    {
-        $this->userModelClass = $class;
-
-        return $this;
-    }
-
-    /**
-     * @return $this
-     * @throws \Illuminate\Auth\AuthenticationException
-     */
-    public function verifyToken()
-    {
-        if ($this->tokenIsNotActive()) {
-            throw new AuthenticationException('Invalid token');
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return bool
-     * @throws \Illuminate\Auth\AuthenticationException
-     */
-    public function tokenIsNotActive() : bool
-    {
-        return ! $this->tokenIsActive();
-    }
-
-    /**
-     * @return bool
-     * @throws \Illuminate\Auth\AuthenticationException
-     */
-    public function tokenIsActive() : bool
-    {
-        $result = $this->getIntrospectionResult();
-
-        return $result['active'] === true;
+        return new $this->userModelClass;
     }
 }

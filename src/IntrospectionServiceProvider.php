@@ -61,7 +61,6 @@ class IntrospectionServiceProvider extends ServiceProvider
         $router->aliasMiddleware($alias, $middleware);
     }
 
-
     /**
      * Boots the Introspection classes
      *
@@ -69,19 +68,15 @@ class IntrospectionServiceProvider extends ServiceProvider
      */
     protected function bootIntrospection()
     {
-        $request = $this->app->make(Request::class);
         $cache = $this->app->make(Cache::class);
         $config = Config::get('introspection-client');
 
-        $client = new IntrospectionClient($config, $cache);
-        $introspect = new Introspection($client, $request);
-
-        $this->app->singleton(IntrospectionClient::class, function() use($client) {
-            return $client;
+        $this->app->singleton(IntrospectionClient::class, function() use($config, $cache) {
+            return new IntrospectionClient($config, $cache);
         });
 
-        $this->app->singleton(Introspection::class, function() use($introspect) {
-            return $introspect;
+        $this->app->singleton(Introspection::class, function() use($cache) {
+            return new Introspection($cache);
         });
     }
 }

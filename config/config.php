@@ -65,4 +65,14 @@ return [
      * -> Don't put the real key in git, as no keys should be placed in repositories
      */
     'introspection_use_local_decoding' => env('INTROSPECTION_USE_LOCAL_DECODING', FALSE),
+
+    /*
+     * Completly disable remote introspection against an introspection server / endpoint.
+     * Only possible if introspection_use_local_decoding is enabled.
+     *
+     * Attention, there are some cons:
+     * - Does not recognize revoked tokens
+     * - Then there are no information about the current user, it can't be logged in either.
+     */
+    'introspection_disable_remote' => env('INTROSPECTION_DISABLE_REMOTE', FALSE),
 ];
