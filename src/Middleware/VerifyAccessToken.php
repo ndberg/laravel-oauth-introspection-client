@@ -65,7 +65,7 @@ class VerifyAccessToken
             throw new AuthenticationException();
         }
 
-        if ($this->config['use_additional_local_decoding']) {
+        if ($this->config['introspection_use_local_decoding']) {
             // Decodes and checkes signature, exp, etc.
             try {
                 $accessTokenDecoder = (new AccessTokenDecoder($token))->decodeAccessToken();
@@ -82,7 +82,7 @@ class VerifyAccessToken
         }
 
         // remember introspection to endpoint / server for 5 Minutes to reduce network traffic
-        $user = $this->cache->remember('introspect_token:'.$token, $this->config['cache_introspection_result_in_minutes'], function () use ($scopes) {
+        $user = $this->cache->remember('introspect_token:'.$token, $this->config['introspection_cache_result_in_minutes'], function () use ($scopes) {
             return $this->introspection
                 ->verifyToken()
                 ->mustHaveScopes($scopes)

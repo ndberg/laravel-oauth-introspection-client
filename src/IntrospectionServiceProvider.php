@@ -2,13 +2,12 @@
 
 namespace Ndberg\IntrospectionClient;
 
-use Illuminate\Routing\Router;
-use Illuminate\Support\ServiceProvider;
-use Ndberg\IntrospectionClient\Middleware\VerifyAccessToken;
 use Illuminate\Cache\Repository as Cache;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\ServiceProvider;
+use Ndberg\IntrospectionClient\Middleware\VerifyAccessToken;
 
 class IntrospectionServiceProvider extends ServiceProvider
 {
@@ -17,30 +16,12 @@ class IntrospectionServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        /*
-         * Optional methods to load your package assets
-         */
-        // $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'laravel-oauth-introspection-client');
-        // $this->loadViewsFrom(__DIR__.'/../resources/views', 'laravel-oauth-introspection-client');
-        // $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-        // $this->loadRoutesFrom(__DIR__.'/routes.php');
-
         $this->aliasMiddleware(VerifyAccessToken::class, 'VerifyAccessToken');
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__.'/../config/config.php' => config_path('introspection-client.php'),
             ], 'config');
-
-            $this->loadMigrationsFrom(__DIR__ . '/../resources/Migrations/');
-
-            // Publishing Migrations
-            // TODO -> does publish multiple times! WHY?
-            if (! class_exists('CreateUsersTable')){
-                $this->publishes([
-                    __DIR__.'/../database/migrations/create_users_table.stub.php' => database_path('migrations/'.date('Y_m_d_His', time()).'_create_users_table.php'),
-                ], 'migrations');
-            }
         }
 
         $this->bootIntrospection();
@@ -53,11 +34,6 @@ class IntrospectionServiceProvider extends ServiceProvider
     {
         // Automatically apply the package configuration
         $this->mergeConfigFrom(__DIR__.'/../config/config.php', 'introspection-client');
-
-        // Register the main class to use with the facade
-        //$this->app->singleton('laravel-oauth-introspection-client', function () {
-        //    return new IntrospectionServiceProvider();
-        //});
     }
 
     /**
@@ -107,9 +83,5 @@ class IntrospectionServiceProvider extends ServiceProvider
         $this->app->singleton(Introspection::class, function() use($introspect) {
             return $introspect;
         });
-
-//        Auth::extend('introspect', function () use($introspect) {
-//            return new Guard\IntrospectGuard($introspect);
-//        });
     }
 }
