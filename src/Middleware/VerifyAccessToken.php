@@ -58,7 +58,6 @@ class VerifyAccessToken
     public function handle($request, Closure $next, ...$scopes)
     {
         $scopes = is_array($scopes) ? $scopes : [$scopes];
-//        \Log::warning('scopes: ', $scopes);
 
         $token = $request->bearerToken();
         if (empty($token)) {
@@ -69,8 +68,6 @@ class VerifyAccessToken
             // Decodes and checkes signature, exp, etc.
             try {
                 $accessTokenDecoder = (new AccessTokenDecoder($token))->decodeAccessToken();
-//        \Log::debug('scopes: '.implode('.', $accessTokenDecoder->scopes).' exp: '.$accessTokenDecoder->exp);
-
             } catch (ExpiredException $exception) {
                 abort('401', 'Expired Token');
             } catch (\Exception $exception) {
@@ -102,7 +99,6 @@ class VerifyAccessToken
 
         return $next($request);
     }
-
 
     /**
      * @param  array  $givenScopes

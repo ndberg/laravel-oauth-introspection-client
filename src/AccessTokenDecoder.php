@@ -6,7 +6,6 @@ namespace Ndberg\IntrospectionClient;
 
 use Firebase\JWT\JWT;
 use Illuminate\Support\Facades\File;
-use Ndberg\IntrospectionClient\Exceptions\InvalidAccessTokenException;
 
 /**
  * Class AccessTokenDecoder
@@ -67,15 +66,12 @@ class AccessTokenDecoder
      *
      * @var
      */
-    public $scopes;
+    public array $scopes;
 
     /**
      * AccessTokenDecoder constructor.
      *
      * @param  string  $accessToken
-     *
-     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
-     * @throws \Ndberg\IntrospectionClient\Exceptions\InvalidAccessTokenException
      */
     public function __construct(string $accessToken)
     {
@@ -83,29 +79,22 @@ class AccessTokenDecoder
     }
 
     /**
-     * @return object|null
-     * @throws InvalidAccessTokenException
+     * @return \Ndberg\IntrospectionClient\AccessTokenDecoder
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    public function decodeAccessToken() : ?object
+    public function decodeAccessToken() : self
     {
         $key = File::get(storage_path('oauth-public.key'));
         $decoded = JWT::decode($this->accessToken, $key, ['RS256']);
 
-        if ( ! $decoded->aud) {
-            throw new InvalidAccessTokenException();
-        }
-
         $this->aud = $decoded->aud;
-
-//        Log::debug('Access Token:', (array) $decoded);
-//        Log::debug('Scopes', $decoded->scopes);
-//        Log::debug('Scopes json '.json_encode($decoded->scopes));
-
-        $this->scopes = json_encode($decoded->scopes);
-
+        $this->jti = $decoded->jti;
+        $this->iat = $decoded->iat;
+        $this->nbf = $decoded->nbf;
         $this->exp = $decoded->exp;
+        $this->sub = $decoded->sub;
+        $this->scopes = $decoded->scopes;
 
-        return $decoded;
+        return $this;
     }
 }
