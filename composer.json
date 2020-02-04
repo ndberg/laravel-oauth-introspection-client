@@ -1,0 +1,64 @@
+{
+    "name": "ndberg/laravel-oauth-introspection-client",
+    "description": "Middleware for separeted resource servers with laravel/passport verifying bearer Tokens and authenticate the user from the token. Used for clean resource server with separated laravel/passport auth server.",
+    "keywords": [
+        "laravel-oauth-introspection-client",
+        "laravel-resource-server",
+        "laravel-api",
+        "laravel-oauth2",
+        "laravel-passport-resource-server"
+    ],
+    "homepage": "https://github.com/ndberg/laravel-oauth-introspection-client",
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Andreas Berger",
+            "email": "a@bergerweb.ch"
+        }
+    ],
+    "require": {
+        "php": "^7.4",
+        "ext-json": "*",
+        "illuminate/support": "^6.0",
+        "illuminate/database": "^6.0",
+        "illuminate/log": "^6.0",
+        "illuminate/cache": "^6.0",
+        "guzzlehttp/guzzle": "^6.5"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^4.0",
+        "phpunit/phpunit": "^8.5"
+    },
+    "suggest": {
+        "firebase/php-jwt": "Allows local access_token decoding"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ndberg\\IntrospectionClient\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Ndberg\\IntrospectionClient\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Ndberg\\IntrospectionClient\\IntrospectionServiceProvider"
+            ],
+            "aliases": {
+                "Introspection": "Ndberg\\IntrospectionClient\\IntrospectionFacade"
+            }
+        }
+    }
+}
