@@ -22,6 +22,11 @@ class Introspection
     protected string $userModelClass = User::class;
 
     /**
+     * @var \Illuminate\Support\Collection
+     */
+    protected Collection $scopes;
+
+    /**
      * User Model
      *
      * @var \Illuminate\Foundation\Auth\User
@@ -72,7 +77,7 @@ class Introspection
     /**
      * @param  array  $userData
      *
-     * @return \Illuminate\Foundation\Auth\User
+     * @return \Illuminate\Contracts\Auth\Authenticatable
      */
     public function setUser($userData): User
     {
@@ -83,10 +88,57 @@ class Introspection
     }
 
     /**
+     * @param  Collection  $scopes
+     *
+     * @return \Ndberg\IntrospectionClient\Introspection
+     */
+    public function setScopes($scopes = null)
+    {
+        $this->scopes = $scopes ?? collect([]);
+
+        return $this;
+    }
+
+    /**
      * @return \Illuminate\Contracts\Auth\Authenticatable
      */
     protected function getUserModel() : Authenticatable
     {
         return new $this->userModelClass;
+    }
+
+    /**
+     * Get the scopes of the inspected token
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function getScopes(): ?Collection
+    {
+        return $this->scopes;
+    }
+
+    /**
+     * Checks if the introspection contains a specific scope
+     *
+     * @param  string  $scope
+     *
+     * @return bool
+     */
+    public function containsScope(string $scope): bool
+    {
+        return $this->scopes->contains($scope);
+    }
+
+    /**
+     * To get user related data directly
+     *
+     * @param $name
+     * @param $arguments
+     *
+     * @return \Illuminate\Support\Collection|null
+     */
+    public function __call($name, $arguments)
+    {
+        return $this->getUserRelatedData($name);
     }
 }

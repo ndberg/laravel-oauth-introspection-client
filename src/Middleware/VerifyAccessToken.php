@@ -87,7 +87,7 @@ class VerifyAccessToken
 
         // remember introspection to endpoint / server to reduce network traffic
         if ( ! $this->config['introspection_disable_remote']) {
-            $userData = $this->cache->remember('introspect_token:'.$token, $this->config['introspection_cache_result_in_minutes'], function () use ($scopes) {
+            $userData = $this->cache->remember('introspect_token:userData:'.$token, $this->config['introspection_cache_result_in_minutes'], function () use ($scopes) {
                 return $this->remoteIntrospector
                     ->verifyToken()
                     ->mustHaveScopes($scopes)
@@ -95,6 +95,11 @@ class VerifyAccessToken
             });
 
             $user = $this->introspection->setUser($userData);
+
+            $scopes = $this->cache->remember('introspect_token:scopes:'.$token, $this->config['introspection_cache_result_in_minutes'], function () use ($scopes) {
+                return $this->remoteIntrospector->getScopes();
+            });
+            $this->introspection->setScopes($scopes);
 
             if ($user) {
                 \Auth::login($user);

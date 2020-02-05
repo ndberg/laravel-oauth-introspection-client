@@ -7,6 +7,7 @@ use Illuminate\Auth\AuthenticationException;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Ndberg\IntrospectionClient\Exceptions\MissingScopeException;
 
 /**
@@ -210,5 +211,18 @@ class RemoteIntrospector
         $result = $this->getIntrospectionResult();
 
         return $result['active'] === true;
+    }
+
+    /**
+     * Get the Scopes of the access token
+     *
+     * @return \Illuminate\Support\Collection
+     * @throws \Illuminate\Auth\AuthenticationException
+     */
+    public function getScopes(): Collection
+    {
+        $result = $this->getIntrospectionResult();
+
+        return collect(explode(' ', $result['scope']));
     }
 }
